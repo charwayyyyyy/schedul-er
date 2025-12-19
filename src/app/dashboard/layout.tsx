@@ -20,6 +20,7 @@ export default async function DashboardLayout({ children }: DashboardLayoutProps
     { name: 'Schedule', href: '/dashboard', icon: CalendarDays },
     { name: 'Classes', href: '/dashboard/classes', icon: BookOpen },
     { name: 'Users', href: '/dashboard/users', icon: Users },
+    { name: 'Profile', href: '/dashboard/profile', icon: Users },
     { name: 'Logout', href: '/api/auth/signout?callbackUrl=/login', icon: LogOut },
     
   ];
