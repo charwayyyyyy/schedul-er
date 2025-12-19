@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { Plus, Search, Clock, Users } from 'lucide-react';
+import { Plus, Search, Clock } from 'lucide-react';
 
 type ClassItem = {
   id: string;
@@ -18,7 +18,6 @@ const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 
 export default function ClassesPage() {
   const [items, setItems] = useState<ClassItem[]>([]);
   const [q, setQ] = useState('');
-  const [status] = useState<'all' | 'active'>('all');
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState<ClassItem | null>(null);
   const [name, setName] = useState('');
@@ -34,7 +33,15 @@ export default function ClassesPage() {
         const res = await fetch('/api/classes', { cache: 'no-store' });
         const data = await res.json();
         if (Array.isArray(data.classes)) {
-          const normalized = data.classes.map((c: any) => ({
+          const normalized = data.classes.map((c: {
+            id: string;
+            name: string;
+            description?: string | null;
+            dayOfWeek: number;
+            startTime: string | Date;
+            endTime: string | Date;
+            teacherId?: string;
+          }) => ({
             id: c.id,
             name: c.name,
             description: c.description,
@@ -121,7 +128,6 @@ export default function ClassesPage() {
           }),
         });
         if (res.ok) {
-          const data = await res.json();
           const updated = items.map(i => (i.id === editing.id ? {
             ...i,
             name,
@@ -175,7 +181,7 @@ export default function ClassesPage() {
         : [{ id: fallbackId, name, description, dayOfWeek, startTime: startIso, endTime: endIso }, ...items];
       saveLocal(nextLocal);
       setShowModal(false);
-    } catch (e) {
+    } catch {
       setError('Failed to save');
     }
   };

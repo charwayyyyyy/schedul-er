@@ -63,13 +63,20 @@ export async function POST(req: Request) {
       },
     });
 
-    // Remove password from response
-    const { password: _, ...userWithoutPassword } = user;
+    const userWithoutPassword = {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      image: user.image,
+      school: user.school,
+      profileClass: user.profileClass,
+      bio: user.bio,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+    };
 
-    return NextResponse.json(
-      { user: userWithoutPassword, message: 'User created successfully' },
-      { status: 201 }
-    );
+    return NextResponse.json({ user: userWithoutPassword, message: 'User created successfully' }, { status: 201 });
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       if (error.code === 'P2002') {

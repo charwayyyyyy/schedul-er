@@ -6,8 +6,27 @@ import { Search, Plus, MoreVertical } from 'lucide-react';
 export default function UsersPage() {
   const [selectedRole, setSelectedRole] = useState('all');
 
-  // Mock data for users
-  const users = [
+  type Teacher = {
+    id: number;
+    name: string;
+    email: string;
+    role: 'TEACHER';
+    subjects: string[];
+    status: string;
+  };
+
+  type Student = {
+    id: number;
+    name: string;
+    email: string;
+    role: 'STUDENT';
+    grade: string;
+    status: string;
+  };
+
+  type User = Teacher | Student;
+
+  const users: User[] = [
     {
       id: 1,
       name: 'Dr. John Smith',

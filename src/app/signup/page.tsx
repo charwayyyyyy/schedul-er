@@ -34,7 +34,7 @@ export default function SignUpPage() {
         const data = await res.json();
         setError(data.error || 'Something went wrong');
       }
-    } catch (error) {
+    } catch {
       setError('An error occurred. Please try again.');
     }
   };

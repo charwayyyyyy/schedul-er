@@ -2,6 +2,7 @@ import { PrismaAdapter } from "@auth/prisma-adapter";
 import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
+import type { Adapter } from "next-auth/adapters";
 import { db } from "./db";
 import { compare } from "bcrypt";
 
@@ -12,7 +13,7 @@ const DEMO_ROLE = (process.env.DEMO_ROLE as "ADMIN" | "TEACHER" | "STUDENT") || 
 const HAS_DB = !!process.env.DATABASE_URL;
 
 export const authOptions: NextAuthOptions = {
-  adapter: HAS_DB ? PrismaAdapter(db) : (undefined as unknown as any),
+  adapter: HAS_DB ? (PrismaAdapter(db) as Adapter) : undefined,
   session: {
     strategy: "jwt",
   },
@@ -86,20 +87,19 @@ export const authOptions: NextAuthOptions = {
     },
     async jwt({ token, user }) {
       if (DEMO_LOGIN && token.email === DEMO_EMAIL) {
-        return {
-          id: "demo-user",
-          name: "Demo User",
-          email: DEMO_EMAIL,
-          role: DEMO_ROLE,
-        };
+        token.id = "demo-user";
+        token.name = "Demo User";
+        token.email = DEMO_EMAIL;
+        token.role = DEMO_ROLE;
+        return token;
       }
 
       if (!HAS_DB) {
         if (user) {
           token.id = user.id as string;
-          token.name = user.name;
-          token.email = user.email;
-          token.role = (user as any).role;
+          token.name = (user.name as string | null) ?? undefined;
+          token.email = (user.email as string | null) ?? undefined;
+          token.role = ((user as { role?: "ADMIN" | "TEACHER" | "STUDENT" }).role) ?? "STUDENT";
         }
         return token;
       }
@@ -117,12 +117,11 @@ export const authOptions: NextAuthOptions = {
         return token;
       }
 
-      return {
-        id: dbUser.id,
-        name: dbUser.name,
-        email: dbUser.email,
-        role: dbUser.role,
-      };
+      token.id = dbUser.id;
+      token.name = dbUser.name ?? undefined;
+      token.email = dbUser.email ?? undefined;
+      token.role = dbUser.role;
+      return token;
     },
   },
   secret: process.env.NEXTAUTH_SECRET,
