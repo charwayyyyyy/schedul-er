@@ -5,6 +5,12 @@ import GoogleProvider from "next-auth/providers/google";
 import { db } from "./db";
 import { compare } from "bcrypt";
 
+const DEMO_LOGIN = process.env.DEMO_LOGIN === "true";
+const DEMO_EMAIL = process.env.DEMO_EMAIL || "demo@scheduler.local";
+const DEMO_PASSWORD = process.env.DEMO_PASSWORD || "demo123";
+const DEMO_ROLE = (process.env.DEMO_ROLE as "ADMIN" | "TEACHER" | "STUDENT") || "ADMIN";
+const HAS_DB = !!process.env.DATABASE_URL;
+
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(db),
   session: {
@@ -27,6 +33,15 @@ export const authOptions: NextAuthOptions = {
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
           return null;
+        }
+
+        if (DEMO_LOGIN && credentials.email === DEMO_EMAIL && credentials.password === DEMO_PASSWORD) {
+          return {
+            id: "demo-user",
+            email: DEMO_EMAIL,
+            name: "Demo User",
+            role: DEMO_ROLE,
+          };
         }
 
         const user = await db.user.findUnique({
@@ -70,6 +85,25 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
     async jwt({ token, user }) {
+      if (DEMO_LOGIN && token.email === DEMO_EMAIL) {
+        return {
+          id: "demo-user",
+          name: "Demo User",
+          email: DEMO_EMAIL,
+          role: DEMO_ROLE,
+        };
+      }
+
+      if (!HAS_DB) {
+        if (user) {
+          token.id = user.id as string;
+          token.name = user.name;
+          token.email = user.email;
+          token.role = (user as any).role;
+        }
+        return token;
+      }
+
       const dbUser = await db.user.findFirst({
         where: {
           email: token.email,
