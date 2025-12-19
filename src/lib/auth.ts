@@ -12,7 +12,7 @@ const DEMO_ROLE = (process.env.DEMO_ROLE as "ADMIN" | "TEACHER" | "STUDENT") || 
 const HAS_DB = !!process.env.DATABASE_URL;
 
 export const authOptions: NextAuthOptions = {
-  adapter: PrismaAdapter(db),
+  adapter: HAS_DB ? PrismaAdapter(db) : (undefined as unknown as any),
   session: {
     strategy: "jwt",
   },

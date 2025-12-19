@@ -8,6 +8,13 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
 
+    if (!process.env.DATABASE_URL) {
+      return NextResponse.json(
+        { error: 'Database is not configured. Set DATABASE_URL to your Supabase Postgres connection string.' },
+        { status: 500 }
+      );
+    }
+
     const schema = z.object({
       name: z.string().min(1, 'Name is required').max(100),
       email: z.string().email('Invalid email').max(200),
